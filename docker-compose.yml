@@ -1,0 +1,49 @@
+version: '3'
+services:
+  db:
+    image: mysql:latest
+    container_name: exchange-db
+    environment:
+      MYSQL_DATABASE: currency-exchange
+      MYSQL_USER: default
+      MYSQL_PASSWORD: ether
+      MYSQL_ROOT_PASSWORD: etherious
+    ports:
+      - "3306:3306"
+    networks:
+      - the_network
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "6000:6000"
+    depends_on:
+      - init-api
+    networks:
+      - the_network
+  
+  init-api:
+    build:
+      context: ./backend/api
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    network_mode: host
+
+  web:
+    image: php:8.1.18-apache
+    volumes:
+      - ./front end:/var/www/html
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - the_network
+networks:
+  the_network:
+    ipam:
+      config:
+        - subnet:  172.18.0.1/16
+          gateway:  172.18.0.1
